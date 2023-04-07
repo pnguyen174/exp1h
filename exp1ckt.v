@@ -39,16 +39,15 @@ logic GT;
 logic WE;
 logic clr;
 
-always_comb begin
-    led = toRAM;
-    avg = {1'b0,sum[7:1]}; end
+assign led = toRAM;
+assign avg = {1'b0,sum[7:1]}; 
 
 clk_2n_div_test #(.n(24)) MY_DIV ( //25
           .clockin   (clk), 
           .fclk_only (0),          //1 for simulation
           .clockout  (clk_div)   );  
 
-cntr_up_clr_nb #(.n(16)) MY_CNTR1 (
+cntr_up_clr_nb #(.n(4)) MY_CNTR1 (
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up1), 
@@ -57,7 +56,7 @@ cntr_up_clr_nb #(.n(16)) MY_CNTR1 (
      .count (toROM), 
      .rco   (RCO1)   ); 
      
- cntr_up_clr_nb #(.n(16)) MY_CNTR2 (
+ cntr_up_clr_nb #(.n(5)) MY_CNTR2 (
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up2), 
@@ -66,7 +65,7 @@ cntr_up_clr_nb #(.n(16)) MY_CNTR1 (
      .count (count2out), 
      .rco   ()   ); 
      
-cntr_up_clr_nb #(.n(16)) MY_CNTR3 (
+cntr_up_clr_nb #(.n(4)) MY_CNTR3 (
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up3), 
@@ -110,12 +109,12 @@ ROM_16x8b my_ROM2 (
       );  
       
    univ_sseg my_univ_sseg (
-     .cnt1    (displayRAM), 
-     .cnt2    (count2out), 
+     .cnt1    ({6'b000000, displayRAM}), 
+     .cnt2    ({3'b000, count2out}), 
      .valid   (1), 
      .dp_en   (0), 
-     .dp_sel  (00), 
-     .mod_sel (01), 
+     .dp_sel  (2'b00), 
+     .mod_sel (2'b01), 
      .sign    (0), 
      .clk     (clk), 
      .ssegs   (seg), 
