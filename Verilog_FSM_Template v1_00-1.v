@@ -20,70 +20,62 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module fsm_template(reset_n, x_in, clk, mealy, moore); 
-    input  reset_n, x_in, clk; 
-    output reg mealy, moore;
+module fsm_template(BTN, RCO, GT, clk, up, up2, up3, we, clr); 
+    input  BTN, RCO, GT, clk; 
+    output reg up, up2, up3, we, clr;
      
     //- next state & present state variables
-    reg [1:0] NS, PS; 
+    reg NS, PS; //[1:0]
     //- bit-level state representations
-    parameter [1:0] st_A=2'b00, st_B=2'b01, st_C=2'b11; 
+    parameter WAIT=1'b0, SCAN=1'b1; 
     
 
-    //- model the state registers
-    always @ (negedge reset_n, posedge clk)
-       if (reset_n == 0) 
-          PS <= st_A; 
-       else
+//- model the state registers
+    always @ (posedge clk)
           PS <= NS; 
     
     
     //- model the next-state and output decoders
-    always @ (x_in,PS)
+    always @ (BTN, RCO, GT ,PS)
     begin
-       mealy = 0; moore = 0; // assign all outputs
+       up = 0; up2 = 0; up3 = 1; we = 0; clr = 0;// assign all outputs
        case(PS)
-          st_A:
-          begin
-             moore = 1;        
-             if (x_in == 1)
+          WAIT:
+          begin        
+             if (BTN == 1)
              begin
-                mealy = 0;   
-                NS = st_A; 
+                clr = 1;   
+                NS = SCAN; 
              end  
              else
              begin
-                mealy = 1; 
-                NS = st_B; 
+                NS = WAIT; 
              end  
           end
           
-          st_B:
+          SCAN:
              begin
-                moore = 0;
-                mealy = 1;
-                NS = st_C;
+                if (RCO == 0) begin
+                    if (GT == 1) begin
+                    up2 = 1;
+                    we = 1;
+                    up3 = 1;
+                    end 
+                    else begin
+                    up2 = 0;
+                    we = 0;
+                    up3 = 0;
+                    end
+                end
+                else
+                   NS = WAIT;
              end   
              
-          st_C:
-             begin
-                 moore = 1; 
-                 if (x_in == 1)
-                 begin
-                    mealy = 1; 
-                    NS = st_B; 
-                 end  
-                 else
-                 begin
-                    mealy = 0; 
-                    NS = st_A; 
-                 end  
-             end
-             
-          default: NS = st_A; 
+          default: NS = WAIT; 
             
           endcase
       end              
 endmodule
+
 
 
