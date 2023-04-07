@@ -27,7 +27,7 @@ module fsm_template(BTN, RCO, GT, clk, up, up2, up3, we, clr);
     //- next state & present state variables
     reg NS, PS; //[1:0]
     //- bit-level state representations
-    parameter WAIT=1'b0, SCAN=1'b1; 
+    localparam WAIT=1'b0, SCAN=1'b1; 
     
 
 //- model the state registers
@@ -40,42 +40,37 @@ module fsm_template(BTN, RCO, GT, clk, up, up2, up3, we, clr);
     begin
        up = 0; up2 = 0; up3 = 1; we = 0; clr = 0;// assign all outputs
        case(PS)
-          WAIT:
-          begin        
-             if (BTN == 1)
-             begin
+          WAIT: begin        
+             //up = 0; up2 = 0; up3 = 1; we = 0; clr = 0;
+             if (BTN == 1) begin
                 clr = 1;   
                 NS = SCAN; 
              end  
-             else
-             begin
+             else begin
                 NS = WAIT; 
              end  
           end
           
-          SCAN:
-             begin
-                if (RCO == 0) begin
-                    if (GT == 1) begin
-                    up2 = 1;
-                    we = 1;
-                    up3 = 1;
-                    end 
-                    else begin
-                    up2 = 0;
-                    we = 0;
-                    up3 = 0;
-                    end
+          SCAN: begin
+                up = 1; //always increment RAM
+                
+                if (GT == 1) begin
+                     up2 = 1;
+                     we = 1;
+                     up3 = 1;
+                end 
+                else begin
+                        up2 = 0;
+                        we = 0;
+                        up3 = 0;
                 end
-                else
-                   NS = WAIT;
-             end   
+                
+                if (RCO) NS = WAIT;
+                else NS = SCAN;
+          end   
              
           default: NS = WAIT; 
             
           endcase
       end              
 endmodule
-
-
-
