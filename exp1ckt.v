@@ -1,27 +1,27 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Aiden Tung, Peter Nguyen, Ray Liu
 // 
 // Create Date: 04/05/2023 01:21:38 PM
-// Design Name: 
 // Module Name: exp1ckt
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
+// Project Name: Experiment 1H
+// Description: Circuit designed to read values from two ROM's and check if the average of those
+// values is greater than 15 (rounded up). If so, writes to a RAM then displays number of valid values 
+// and values written using a 7-segment display on the Basys3 board
 // Revision 0.01 - File Created
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module exp1ckt( input BTN, input clk, output logic [3:0]An, output logic [7:0]seg, output logic [3:0]led );
-
+module exp1ckt(input BTN, 
+               input clk, 
+               output logic [3:0]An, 
+               output logic [7:0]seg, 
+               output logic [3:0]led);
+   
+// wires 
 logic up1;
 logic up2;
 logic up3;
@@ -39,15 +39,16 @@ logic GT;
 logic WE;
 logic clr;
 
-assign led = toRAM;
-assign avg = {1'b0,sum[7:1]}; 
 
-clk_2n_div_test #(.n(24)) MY_DIV ( //25
+assign led = toRAM; // displaying address of RAM to LED
+assign avg = {1'b0,sum[7:1]}; // bit slicing to average two values (rounding up)
+
+clk_2n_div_test #(.n(24)) MY_DIV ( 
           .clockin   (clk), 
-          .fclk_only (0),          //1 for simulation
+          .fclk_only (0),          
           .clockout  (clk_div)   );  
 
-cntr_up_clr_nb #(.n(4)) MY_CNTR1 (
+cntr_up_clr_nb #(.n(4)) MY_CNTR1 ( // counter for ROM's
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up1), 
@@ -56,7 +57,7 @@ cntr_up_clr_nb #(.n(4)) MY_CNTR1 (
      .count (toROM), 
      .rco   (RCO1)   ); 
      
- cntr_up_clr_nb #(.n(5)) MY_CNTR2 (
+cntr_up_clr_nb #(.n(5)) MY_CNTR2 ( // counter for tracking valid values
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up2), 
@@ -65,7 +66,7 @@ cntr_up_clr_nb #(.n(4)) MY_CNTR1 (
      .count (count2out), 
      .rco   ()   ); 
      
-cntr_up_clr_nb #(.n(4)) MY_CNTR3 (
+cntr_up_clr_nb #(.n(4)) MY_CNTR3 ( // counter for cycling thorugh RAM address
      .clk   (clk_div), 
      .clr   (clr), 
      .up    (up3), 
@@ -87,7 +88,7 @@ ROM_16x8b my_ROM2 (
  rca_nb #(.n(8)) MY_RCA (
           .a   (ROM1out), 
           .b   (ROM2out), 
-          .cin (8'b00000001), 
+          .cin (8'b00000001), // adding 1 as carry-in allows for rounding up when bit slicing
           .sum (sum), 
           .co  ()
           );
@@ -101,8 +102,8 @@ ROM_16x8b my_ROM2 (
           );  
 
  ram_single_port #(.n(4),.m(8)) my_ram (
-      .data_in  (avg),  // m spec
-      .addr     (toRAM),  // n spec 
+      .data_in  (avg), 
+      .addr     (toRAM),  
       .we       (WE),
       .clk      (clk_div),
       .data_out (displayRAM)
